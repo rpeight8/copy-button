@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copy</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0f0f0f;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      #btn {
+        padding: 0.75rem 2rem;
+        background: #1c1c1c;
+        color: #e0e0e0;
+        border: 1px solid #3a3a3a;
+        border-radius: 6px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        /* Ensure button text never wraps */
+        white-space: nowrap;
+      }
+
+      /* Keyboard focus ring — visible only for keyboard nav */
+      #btn:focus {
+        outline: 2px solid #777;
+        outline-offset: 3px;
+      }
+      #btn:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      #btn:hover:not(:disabled) {
+        background: #282828;
+        border-color: #666;
+      }
+
+      #btn[data-s="ok"] {
+        border-color: #3a7a3a;
+        color: #7dda7d;
+      }
+      #btn[data-s="err"] {
+        border-color: #7a3a3a;
+        color: #da7d7d;
+      }
+
+      #btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      /* Visually hidden — readable by screen readers */
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="btn" type="button" aria-label="Copy text to clipboard">
+      Copy to clipboard
+    </button>
+
+    <!-- Live region so screen readers announce the result -->
+    <span
+      id="sr-msg"
+      class="sr"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></span>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var DATA =
+          "vless://197b3392-af08-473d-9a63-ec6b3d1bf461@146.103.108.46:26837?type=tcp&encryption=none&security=reality&pbk=OBksgIpuvNMINlUjIZQKR8YVYU7HxGOG8v7K-HxrF0k&fp=chrome&sni=www.bilibili.com&sid=a7&spx=%2F&flow=xtls-rprx-vision#VP-TV-2g56ygd7";
+
+        var btn = document.getElementById("btn");
+        var srMsg = document.getElementById("sr-msg");
+        var timer;
+
+        /* ── helpers ─────────────────────────────────────────── */
+
+        function announce(text) {
+          /* Toggling textContent twice forces a re-announcement in some AT */
+          srMsg.textContent = "";
+          srMsg.textContent = text;
+        }
+
+        function setState(state /* 'ok' | 'err' | '' */) {
+          clearTimeout(timer);
+
+          if (!state) {
+            btn.removeAttribute("data-s");
+            btn.disabled = false;
+            btn.textContent = "Copy to clipboard";
+            btn.setAttribute("aria-label", "Copy text to clipboard");
+            srMsg.textContent = "";
+            return;
+          }
+
+          btn.setAttribute("data-s", state);
+          btn.disabled = true; /* prevent double-click during feedback */
+
+          var label = state === "ok" ? "Copied!" : "Copy failed — try again";
+          btn.textContent = state === "ok" ? "Copied!" : "Failed";
+          btn.setAttribute("aria-label", label);
+          announce(label);
+
+          timer = setTimeout(function () {
+            setState("");
+          }, 2000);
+        }
+
+        /* ── fallback for old browsers (execCommand) ─────────── */
+
+        function legacyCopy(text) {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.setAttribute("aria-hidden", "true");
+          /* Keep it off-screen so it doesn't cause layout shifts or flashes */
+          ta.style.cssText =
+            "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+          document.body.appendChild(ta);
+
+          try {
+            /* iOS Safari needs a Range + setSelectionRange combo */
+            if (/ipad|iphone/i.test(navigator.userAgent)) {
+              var range = document.createRange();
+              range.selectNodeContents(ta);
+              var sel = window.getSelection();
+              if (sel) {
+                sel.removeAllRanges();
+                sel.addRange(range);
+              }
+              ta.setSelectionRange(0, text.length);
+            } else {
+              ta.select();
+            }
+            return document.execCommand("copy");
+          } catch (e) {
+            return false;
+          } finally {
+            document.body.removeChild(ta);
+          }
+        }
+
+        /* ── main copy handler ───────────────────────────────── */
+
+        btn.addEventListener("click", function () {
+          /* Modern API: requires secure context (https or localhost) */
+          if (
+            typeof navigator !== "undefined" &&
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText === "function" &&
+            window.isSecureContext
+          ) {
+            navigator.clipboard.writeText(DATA).then(
+              function () {
+                setState("ok");
+              },
+              function () {
+                /* Clipboard API can be blocked by permissions — try fallback */
+                setState(legacyCopy(DATA) ? "ok" : "err");
+              }
+            );
+          } else {
+            /* Insecure context or old browser — use execCommand */
+            setState(legacyCopy(DATA) ? "ok" : "err");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
