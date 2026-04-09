@@ -20,50 +20,56 @@
         justify-content: center;
         background: #0f0f0f;
         font-family: system-ui, -apple-system, sans-serif;
+        padding: 2rem;
       }
 
-      #btn {
-        padding: 0.75rem 2rem;
+      #grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 640px;
+      }
+
+      .btn {
+        padding: 0.75rem 1.25rem;
         background: #1c1c1c;
         color: #e0e0e0;
         border: 1px solid #3a3a3a;
         border-radius: 6px;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: background 0.15s, border-color 0.15s, color 0.15s;
-        /* Ensure button text never wraps */
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      /* Keyboard focus ring — visible only for keyboard nav */
-      #btn:focus {
+      .btn:focus {
         outline: 2px solid #777;
         outline-offset: 3px;
       }
-      #btn:focus:not(:focus-visible) {
+      .btn:focus:not(:focus-visible) {
         outline: none;
       }
-
-      #btn:hover:not(:disabled) {
+      .btn:hover:not(:disabled) {
         background: #282828;
         border-color: #666;
       }
-
-      #btn[data-s="ok"] {
-        border-color: #3a7a3a;
-        color: #7dda7d;
-      }
-      #btn[data-s="err"] {
-        border-color: #7a3a3a;
-        color: #da7d7d;
-      }
-
-      #btn:disabled {
+      .btn:disabled {
         cursor: not-allowed;
         opacity: 0.6;
       }
 
-      /* Visually hidden — readable by screen readers */
+      .btn[data-s="ok"] {
+        border-color: #3a7a3a;
+        color: #7dda7d;
+      }
+      .btn[data-s="err"] {
+        border-color: #7a3a3a;
+        color: #da7d7d;
+      }
+
       .sr {
         position: absolute;
         width: 1px;
@@ -75,11 +81,7 @@
     </style>
   </head>
   <body>
-    <button id="btn" type="button" aria-label="Copy text to clipboard">
-      Copy to clipboard
-    </button>
-
-    <!-- Live region so screen readers announce the result -->
+    <div id="grid" role="list"></div>
     <span
       id="sr-msg"
       class="sr"
@@ -92,60 +94,75 @@
       (function () {
         "use strict";
 
-        var DATA =
-          "vless://197b3392-af08-473d-9a63-ec6b3d1bf461@146.103.108.46:26837?type=tcp&encryption=none&security=reality&pbk=OBksgIpuvNMINlUjIZQKR8YVYU7HxGOG8v7K-HxrF0k&fp=chrome&sni=www.bilibili.com&sid=a7&spx=%2F&flow=xtls-rprx-vision#VP-TV-2g56ygd7";
+        /* ── data ────────────────────────────────────────────── */
+        var BUTTONS = [
+          {
+            title: "SS-NO-TLS",
+            copyData:
+              "ss://MjAyMi1ibGFrZTMtYWVzLTI1Ni1nY206U0JVVnZUS3FENHphcUN5M3pUY2JGZ2NIZVY0a2V1cG1LVGo2eHcrek85MD06Zi8rcUxpOTlMSlBVVWE3TG5uY0dTUHJZMmhlZTgxSDdCbWN1UndjakkzTT0@212.118.53.242:36046?type=tcp#VP-TV-SS-NO-TLS-cdhnudfu",
+          },
+          {
+            title: "SS-TLS",
+            copyData:
+              "ss://MjAyMi1ibGFrZTMtYWVzLTI1Ni1nY206NmtER1FSc2ZWbSs2R1U5eHczZEVKTnMvbDRVbGRkdVV4RE52cHZSV0U5TT06ZnFxc252WGxrVjB5dEhwN3V5QkJFaWtMYnBxT3hwc1lxbjM4aEVhcXBMWT0@212.118.53.242:24784?type=tcp&security=tls&fp=chrome&alpn=h2%2Chttp%2F1.1&allowInsecure=1&ech=AGP%2BDQBfAAAgACBH%2FDx%2FJt7iRm9F501AOipZ2V58WL%2BUsNwxfOJiYd32KwAkAAEAAQABAAIAAQADAAIAAQACAAIAAgADAAMAAQADAAIAAwADABB3d3cuYmlsaWJpbGkuY29tAAA%3D&sni=www.bilibili.com#VP-TV-SS-TLS-NO-SR-rkzdneis",
+          },
+          {
+            title: "VLESS-XHTTP",
+            copyData:
+              "vless://56184bf8-5519-47dd-b48a-6471d8b44f38@212.118.53.242:45021?type=xhttp&encryption=none&path=%2F&host=www.bilibili.com&mode=auto&security=reality&pbk=s_mVua78pHjgLJ2XSQ0DGzk8YUucehkniC52Xt7hnEU&fp=chrome&sni=www.bilibili.com&sid=a3db9174a1fc&spx=%2F#VP-TV-VLESS-XHHTP-0w2ofcyy",
+          },
+          {
+            title: "VLESS-WS-TLS",
+            copyData:
+              "vless://404f23fe-b5c2-4016-9c2d-a716af716c41@212.118.53.242:44371?type=ws&encryption=none&path=%2F&host=&security=tls&fp=chrome&alpn=h2%2Chttp%2F1.1&sni=www.bilibili.com#VP-TV-VLESS-WS-TLS-qjvbu3t7",
+          },
+          {
+            title: "VLESS-WS-NO-TLS",
+            copyData:
+              "vless://97b1654d-da63-47fb-84c9-01b5363ec8e6@212.118.53.242:15234?type=ws&encryption=none&path=%2F&host=www.bilibili.com&security=none#VP-TV-WS-NO-TLS-y7p85l1q",
+          },
+          {
+            title: "VMESS-TLS",
+            copyData:
+              "vmess://ewogICJ2IjogIjIiLAogICJwcyI6ICJWUC1UVi1WTUVTUy1UTFMtaHdveDc0cXQiLAogICJhZGQiOiAiMjEyLjExOC41My4yNDIiLAogICJwb3J0IjogMzQ4OTcsCiAgImlkIjogIjc4ZDUwMGM0LTM1ZTYtNDMzYS1iMDY2LTRkMmYzZWFjMzlmNCIsCiAgInNjeSI6ICJhdXRvIiwKICAibmV0IjogInRjcCIsCiAgInRscyI6ICJ0bHMiLAogICJ0eXBlIjogIm5vbmUiLAogICJzbmkiOiAid3d3LmJpbGliaWxpLmNvbSIsCiAgImZwIjogImNocm9tZSIsCiAgImFscG4iOiAiaDIsaHR0cC8xLjEiCn0=",
+          },
+          {
+            title: "TUIC",
+            copyData:
+              "tuic://2c7f5257-a78d-40be-a7f3-95231269a9a4:b3y06KCda0@89.124.78.167:42951?security=tls&insecure=1&sni=bilibili.com&alpn=h3,h2,http/1.1&congestion_control=bbr#tuic-42951",
+          },
+          {
+            title: "Hysteria2",
+            copyData:
+              "hysteria2://b3y06KCda0@89.124.78.167:23183?security=tls&insecure=1&sni=bilibili.com&alpn=h3,h2,http/1.1&fastopen=0#hysteria2-23183",
+          },
+          {
+            title: "SS-LZ",
+            copyData:
+              "ss://YWVzLTI1Ni1nY206LzB1bXltOU94aDFjdUxqNnlyVkx6Vm1WQm9McmNXTTNnZ0E3RExGQ0VMVT0=@89.124.78.167:21772#shadowsocks-lz",
+          },
+          {
+            title: "VLESS",
+            copyData:
+              "vless://f2adb33b-0b6f-4e02-b5ad-7f61c71084e1@212.118.53.242:27063?type=tcp&encryption=none&security=reality&pbk=GUo8113kTZ1lQaIdnK7hx0lyxDR5X8hl6YnHp4DrW3Y&fp=chrome&sni=www.bilibili.com&sid=81&spx=%2F&flow=xtls-rprx-vision#VP-TV-VLESS-j3ucyna7",
+          },
+        ];
 
-        var btn = document.getElementById("btn");
+        /* ── refs ────────────────────────────────────────────── */
+        var grid = document.getElementById("grid");
         var srMsg = document.getElementById("sr-msg");
-        var timer;
 
-        /* ── helpers ─────────────────────────────────────────── */
-
-        function announce(text) {
-          /* Toggling textContent twice forces a re-announcement in some AT */
-          srMsg.textContent = "";
-          srMsg.textContent = text;
-        }
-
-        function setState(state /* 'ok' | 'err' | '' */) {
-          clearTimeout(timer);
-
-          if (!state) {
-            btn.removeAttribute("data-s");
-            btn.disabled = false;
-            btn.textContent = "Copy to clipboard";
-            btn.setAttribute("aria-label", "Copy text to clipboard");
-            srMsg.textContent = "";
-            return;
-          }
-
-          btn.setAttribute("data-s", state);
-          btn.disabled = true; /* prevent double-click during feedback */
-
-          var label = state === "ok" ? "Copied!" : "Copy failed — try again";
-          btn.textContent = state === "ok" ? "Copied!" : "Failed";
-          btn.setAttribute("aria-label", label);
-          announce(label);
-
-          timer = setTimeout(function () {
-            setState("");
-          }, 2000);
-        }
-
-        /* ── fallback for old browsers (execCommand) ─────────── */
+        /* ── clipboard helpers ───────────────────────────────── */
 
         function legacyCopy(text) {
           var ta = document.createElement("textarea");
           ta.value = text;
           ta.setAttribute("readonly", "");
           ta.setAttribute("aria-hidden", "true");
-          /* Keep it off-screen so it doesn't cause layout shifts or flashes */
           ta.style.cssText =
             "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
           document.body.appendChild(ta);
-
           try {
-            /* iOS Safari needs a Range + setSelectionRange combo */
             if (/ipad|iphone/i.test(navigator.userAgent)) {
               var range = document.createRange();
               range.selectNodeContents(ta);
@@ -166,29 +183,75 @@
           }
         }
 
-        /* ── main copy handler ───────────────────────────────── */
-
-        btn.addEventListener("click", function () {
-          /* Modern API: requires secure context (https or localhost) */
+        function copyText(text, done) {
           if (
             typeof navigator !== "undefined" &&
             navigator.clipboard &&
             typeof navigator.clipboard.writeText === "function" &&
             window.isSecureContext
           ) {
-            navigator.clipboard.writeText(DATA).then(
+            navigator.clipboard.writeText(text).then(
               function () {
-                setState("ok");
+                done(true);
               },
               function () {
-                /* Clipboard API can be blocked by permissions — try fallback */
-                setState(legacyCopy(DATA) ? "ok" : "err");
+                done(legacyCopy(text));
               }
             );
           } else {
-            /* Insecure context or old browser — use execCommand */
-            setState(legacyCopy(DATA) ? "ok" : "err");
+            done(legacyCopy(text));
           }
+        }
+
+        /* ── per-button state ────────────────────────────────── */
+
+        function announce(text) {
+          srMsg.textContent = "";
+          srMsg.textContent = text;
+        }
+
+        function setState(btn, title, state) {
+          clearTimeout(btn._timer);
+
+          if (!state) {
+            btn.removeAttribute("data-s");
+            btn.disabled = false;
+            btn.textContent = title;
+            btn.setAttribute("aria-label", "Copy " + title);
+            return;
+          }
+
+          btn.setAttribute("data-s", state);
+          btn.disabled = true;
+
+          var ok = state === "ok";
+          var label = ok ? title + " copied!" : "Copy failed — try again";
+          btn.textContent = ok ? "Copied!" : "Failed";
+          btn.setAttribute("aria-label", label);
+          announce(label);
+
+          btn._timer = setTimeout(function () {
+            setState(btn, title, "");
+          }, 2000);
+        }
+
+        /* ── render ──────────────────────────────────────────── */
+
+        BUTTONS.forEach(function (item) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn";
+          btn.setAttribute("role", "listitem");
+          btn.textContent = item.title;
+          btn.setAttribute("aria-label", "Copy " + item.title);
+
+          btn.addEventListener("click", function () {
+            copyText(item.copyData, function (ok) {
+              setState(btn, item.title, ok ? "ok" : "err");
+            });
+          });
+
+          grid.appendChild(btn);
         });
       })();
     </script>
