@@ -86,11 +86,15 @@
         text-transform: uppercase;
         font-size: 0.78rem;
         color: #ffe8cc;
-        background: linear-gradient(155deg, #2f2822 0%, #1c1916 48%, #141210 100%);
+        background: linear-gradient(
+          155deg,
+          #2f2822 0%,
+          #1c1916 48%,
+          #141210 100%
+        );
         border: 1px solid rgba(255, 192, 120, 0.65);
         border-radius: 999px;
-        box-shadow:
-          0 4px 28px rgba(0, 0, 0, 0.55),
+        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.55),
           0 0 0 1px rgba(255, 210, 150, 0.12) inset,
           0 0 24px var(--runaway-accent-dim);
         transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
@@ -103,14 +107,12 @@
       @keyframes runaway-idle-pulse {
         0%,
         100% {
-          box-shadow:
-            0 4px 28px rgba(0, 0, 0, 0.55),
+          box-shadow: 0 4px 28px rgba(0, 0, 0, 0.55),
             0 0 0 1px rgba(255, 210, 150, 0.12) inset,
             0 0 18px rgba(255, 192, 120, 0.22);
         }
         50% {
-          box-shadow:
-            0 4px 32px rgba(0, 0, 0, 0.5),
+          box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5),
             0 0 0 1px rgba(255, 220, 170, 0.2) inset,
             0 0 40px rgba(255, 180, 100, 0.42);
         }
@@ -131,7 +133,8 @@
       .btn-runaway.btn-runaway--caught {
         color: #fff8f0;
         border-color: rgba(255, 235, 200, 0.95);
-        animation: runaway-caught-pop 0.88s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+        animation: runaway-caught-pop 0.88s cubic-bezier(0.34, 1.45, 0.64, 1)
+          forwards;
       }
 
       .btn-runaway.btn-runaway--caught::after {
@@ -166,15 +169,13 @@
         0% {
           opacity: 1;
           transform: scale(1);
-          box-shadow:
-            0 0 0 2px rgba(255, 220, 160, 0.9),
+          box-shadow: 0 0 0 2px rgba(255, 220, 160, 0.9),
             0 0 28px rgba(255, 190, 100, 0.55);
         }
         100% {
           opacity: 0;
           transform: scale(2.35);
-          box-shadow:
-            0 0 0 1px rgba(255, 220, 160, 0),
+          box-shadow: 0 0 0 1px rgba(255, 220, 160, 0),
             0 0 0 rgba(255, 190, 100, 0);
         }
       }
@@ -200,8 +201,7 @@
       @media (prefers-reduced-motion: reduce) {
         .btn-runaway:not(.btn-runaway--caught) {
           animation: none;
-          box-shadow:
-            0 4px 28px rgba(0, 0, 0, 0.55),
+          box-shadow: 0 4px 28px rgba(0, 0, 0, 0.55),
             0 0 0 1px rgba(255, 210, 150, 0.12) inset,
             0 0 28px rgba(255, 192, 120, 0.3);
         }
@@ -253,7 +253,7 @@
         "use strict";
 
         /* ── data ────────────────────────────────────────────── */
-        var RUNAWAY_LABEL = "Catch me";
+        var RUNAWAY_LABEL = "Варвара, нажми на меня";
 
         var BUTTONS = [
           {
@@ -272,14 +272,14 @@
               "ss://MjAyMi1ibGFrZTMtYWVzLTI1Ni1nY206elNJNjc4Uk1IUjZydyt3dlFORjM3MXBTbFZoY3pld2JTYXdzVDdEWktITT06emZxNGVYS2IwOE5oN3RVNXFjSStNU0M4UWFqV053Tk91ek9vdVdQMnBCQT0@195.63.129.162:46602?type=tcp#GL-SS-8tyxzz58",
           },
           {
-            title: "VLESS-GRPC",
-            copyData:
-              "vless://79457303-074b-4bc3-9b53-89f8e3dfdf6a@195.63.129.162:22991?type=grpc&encryption=none&serviceName=&authority=&mode=multi&security=reality&pbk=1l349eg0xHb8aitE-DuPmmmFAFZn5MTVdFM-fQSJGzk&fp=android&sni=www.bilibili.com&sid=603aa1d8a80d589a&spx=%2F#GL-VLESS-GRPC-y53qm1ur",
-          },
-          {
             title: "VLESS-XHTTP",
             copyData:
               "vless://ae7fcf4c-207e-4a81-a274-eac0007b95a3@195.63.129.162:50249?type=xhttp&encryption=none&path=%2F&host=&mode=auto&security=reality&pbk=ooGjSfX9rtK53GQChJusbeCl9eHcq7I9BORHYl1bH3s&fp=chrome&sni=www.bilibili.com&sid=4f&spx=%2F#GL-VLESS-XHTTP-3py3w7eu",
+          },
+          {
+            title: "VLESS-GRPC-NS",
+            copyData:
+              "vless://ece76f90-59f2-49bd-b489-dcbbe7a01bb1@195.63.129.162:36665?type=grpc&encryption=none&serviceName=&authority=&mode=multi&security=none#GL-VLESS-GRPC-NS-2xh1678l",
           },
         ];
 
@@ -456,10 +456,7 @@
 
           if (!reduceMotion) {
             requestAnimationFrame(function () {
-              placeRunaway(
-                window.innerWidth * 0.62,
-                window.innerHeight * 0.42
-              );
+              placeRunaway(window.innerWidth * 0.62, window.innerHeight * 0.42);
             });
 
             document.addEventListener("mousemove", function (e) {
